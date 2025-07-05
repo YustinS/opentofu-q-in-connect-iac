@@ -5,7 +5,7 @@ This contains a mix of regular AWS provider, the AWS Cloud Control provider, and
 
 **_ This should be noted that it is sometimes inconsistent, and will return errors in situations like updating multiple prompts at the same time _**
 
-The same provided uses the webcrawler to simply the configuration even further, however you should align with AWS guidance incluing limiting scope on public sites or ensuring that you are allowed to scrape a website to get data.
+The sample provided uses the webcrawler to simply the configuration even further, however you should align with AWS guidance including limiting scope on public sites or ensuring that you are allowed to scrape a website to get data.
 
 ## Requirements
 
