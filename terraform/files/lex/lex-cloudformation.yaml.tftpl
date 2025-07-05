@@ -1,0 +1,96 @@
+Parameters:
+  BotName:
+    Description: The name for the created bot. This is how it will appear in the console
+    Type: String
+    AllowedPattern: ^([0-9a-zA-Z][_-]?){1,100}$
+  BotAlias:
+    Description: The name of the created alias
+    Type: String
+  BotVersionDescription:
+    Description: Description of the bot version. By updating this we can force an update to happen and attach the alias as needed
+    Type: String
+  QinConnectAssistantArn:
+    Description: The ARN of the Q in Connect Assistant
+    Type: String
+  BotRoleArn:
+    Description: The Role ARN that the bot will use. This is the full ARN format
+    Type: String
+  LogGroupArn:
+    Description: The ARN of the Log group to write to
+    Type: String
+  NluConfidence:
+    Description: The level of confidence the bot needs to acheive before an intent/slot is filled
+    Type: Number
+    MinValue: '0.0'
+    MaxValue: '1.0'
+    Default: '0.6'
+
+Resources:
+  QinConnectBot:
+    Type: AWS::Lex::Bot
+    Properties:
+      AutoBuildBotLocales: true
+      IdleSessionTTLInSeconds: 600
+      RoleArn: !Ref BotRoleArn
+      Description: Welcome Bot for use in Social Media Async Channels and obtain the users desires
+      Name: !Ref BotName
+      DataPrivacy:
+        ChildDirected: false
+      BotLocales:
+        - LocaleId: en_AU
+          NluConfidenceThreshold: !Ref NluConfidence
+          Intents:
+            - Name: FallbackIntent
+              ParentIntentSignature: AMAZON.FallbackIntent
+              Description: Used when we do not understand. Required in the bot configuration
+            - Name: QInConnect
+              ParentIntentSignature: AMAZON.QInConnectIntent
+              QInConnectIntentConfiguration:
+                 QInConnectAssistantConfiguration:
+                   AssistantArn: !Ref QinConnectAssistantArn
+  
+  QinConnectBotVersion:
+    DependsOn: QinConnectBot
+    Type: AWS::Lex::BotVersion
+    Properties:
+      BotId: !Ref QinConnectBot
+      Description: !Ref BotVersionDescription
+      BotVersionLocaleSpecification:
+        - LocaleId: en_AU
+          BotVersionLocaleDetails:
+            SourceBotVersion: DRAFT
+  
+  QinConnectBotAliasDeployment:
+    Type: AWS::Lex::BotAlias
+    Properties:
+      BotId: !Ref QinConnectBot
+      BotAliasName: !Ref BotAlias
+      BotVersion: !GetAtt QinConnectBotVersion.BotVersion
+      ConversationLogSettings:
+        TextLogSettings:
+          - Enabled: True
+            Destination:
+              CloudWatch:
+                CloudWatchLogGroupArn: !Ref LogGroupArn
+                LogPrefix: !Ref BotName
+      BotAliasLocaleSettings:
+        - LocaleId: en_AU
+          BotAliasLocaleSetting:
+            Enabled: true
+
+Outputs:
+  QinConnectBotLexId:
+    Description: The resource ID for the Amazon Lex v2 Welcome Bot
+    Value: !GetAtt QinConnectBot.Id
+  QinConnectBotLexArn:
+    Description: The full resource ARN for the Amazon Lex v2 Welcome Bot
+    Value: !GetAtt QinConnectBot.Arn
+  QinConnectBotVersion:
+    Description: The generated version of the bot
+    Value: !GetAtt QinConnectBotVersion.BotVersion
+  QinConnectBotAliasId:
+    Description: The ID of the alias
+    Value: !GetAtt QinConnectBotAliasDeployment.BotAliasId
+  QinConnectBotAliasArn:
+    Description: The generated version of the bot
+    Value: !GetAtt QinConnectBotAliasDeployment.Arn
