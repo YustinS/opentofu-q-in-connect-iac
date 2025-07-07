@@ -102,10 +102,12 @@ resource "awscc_wisdom_ai_prompt" "self_service" {
 
 # Time providers are used to ensure we force the update
 # without these the versioning would sometimes not trigger correctly
-# meaning updates not applied
-resource "time_static" "self_service_update" {
+# meaning updates not applied. Due to API issues we also set a 2 minute sleep,
+# as this is much more consistent
+resource "time_sleep" "self_service_update" {
+  create_duration = "120s"
   triggers = {
-    filesha = filesha256("${path.module}/files/self_service/self-service-custom-prompt.yaml")
+    prompt_updated = awscc_wisdom_ai_prompt.self_service.template_configuration.text_full_ai_prompt_edit_template_configuration.text
   }
 }
 
@@ -116,7 +118,7 @@ resource "awscc_wisdom_ai_prompt_version" "self_service_version" {
   lifecycle {
     create_before_destroy = true
     replace_triggered_by = [
-      time_static.self_service_update.id
+      time_sleep.self_service_update.id
     ]
   }
 }
@@ -143,10 +145,12 @@ resource "awscc_wisdom_ai_prompt" "self_service_answer_generation" {
 
 # Time providers are used to ensure we force the update
 # without these the versioning would sometimes not trigger correctly
-# meaning updates not applied
-resource "time_static" "self_service_answer_generation_update" {
+# meaning updates not applied. Due to API issues we also set a 2 minute sleep,
+# as this is much more consistent
+resource "time_sleep" "self_service_answer_generation_update" {
+  create_duration = "120s"
   triggers = {
-    filesha = filesha256("${path.module}/files/self_service/self-service-answer-generation.yaml")
+    prompt_updated = awscc_wisdom_ai_prompt.self_service_answer_generation.template_configuration.text_full_ai_prompt_edit_template_configuration.text
   }
 }
 
@@ -154,12 +158,10 @@ resource "awscc_wisdom_ai_prompt_version" "self_service_answer_generation" {
   assistant_id = awscc_wisdom_assistant.wisdom_assistant.assistant_id
   ai_prompt_id = awscc_wisdom_ai_prompt.self_service_answer_generation.ai_prompt_id
 
-  modified_time_seconds = awscc_wisdom_ai_prompt.self_service_answer_generation.modified_time_seconds
-
   lifecycle {
     create_before_destroy = true
     replace_triggered_by = [
-      time_static.self_service_answer_generation_update.id
+      time_sleep.self_service_answer_generation_update.id
     ]
   }
 }
@@ -191,8 +193,8 @@ resource "awscc_wisdom_ai_agent_version" "custom_self_service_agent_version" {
   lifecycle {
     create_before_destroy = true
     replace_triggered_by = [
-      time_static.self_service_update.id,
-      time_static.self_service_answer_generation_update.id
+      awscc_wisdom_ai_prompt_version.self_service_answer_generation.ai_prompt_version_id,
+      awscc_wisdom_ai_prompt_version.self_service_version.ai_prompt_version_id
     ]
   }
 }
