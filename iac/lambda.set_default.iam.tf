@@ -34,7 +34,7 @@ data "aws_iam_policy_document" "wisdom_set_default" {
       "wisdom:UpdateAssistantAIAgent"
     ]
     resources = [
-      "arn:aws:wisdom:${var.aws_region}:${data.aws_caller_identity.current.account_id}:assistant/*"
+      "arn:${data.aws_partition.current.partition}:wisdom:${var.aws_region}:${data.aws_caller_identity.current.account_id}:assistant/*"
     ]
   }
 }

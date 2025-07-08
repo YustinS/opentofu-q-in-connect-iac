@@ -1,0 +1,149 @@
+# This shows the alternate approach, using the S3 Data source
+
+resource "aws_s3_bucket" "q_knowledgebase_bucket" {
+  bucket_prefix = "${var.account_shortname}-q-knowledgebase-${var.environment}"
+}
+
+resource "aws_s3_bucket_server_side_encryption_configuration" "q_knowledgebase_bucket" {
+  bucket = aws_s3_bucket.q_knowledgebase_bucket.id
+
+  rule {
+    apply_server_side_encryption_by_default {
+      sse_algorithm = "aws:kms"
+      # This may require confirming if KMS policy requires extra access
+      kms_master_key_id = aws_kms_alias.q_encryption_key_alias.target_key_arn
+    }
+    bucket_key_enabled = true
+  }
+}
+
+resource "aws_s3_bucket_versioning" "q_knowledgebase_bucket" {
+  bucket = aws_s3_bucket.q_knowledgebase_bucket.id
+
+  versioning_configuration {
+    mfa_delete = "Disabled"
+    status     = "Enabled"
+  }
+}
+
+resource "aws_s3_bucket_public_access_block" "q_knowledgebase_bucket" {
+  bucket                  = aws_s3_bucket.q_knowledgebase_bucket.id
+  block_public_acls       = true
+  block_public_policy     = true
+  ignore_public_acls      = true
+  restrict_public_buckets = true
+}
+
+resource "aws_s3_bucket_policy" "q_knowledgebase_bucket" {
+  bucket = aws_s3_bucket.q_knowledgebase_bucket.id
+  policy = data.aws_iam_policy_document.q_knowledgebase_bucket.json
+}
+
+data "aws_iam_policy_document" "q_knowledgebase_bucket" {
+
+  # This policy would normally be added automatically when the user
+  # clicks the relevant buttons in the console
+  statement {
+    sid    = "AllowAppIntegrationAccess"
+    effect = "Allow"
+    principals {
+      type        = "Service"
+      identifiers = ["app-integrations.amazonaws.com"]
+    }
+
+    actions = [
+      "s3:ListBucket",
+      "s3:GetObject",
+      "s3:GetBucketLocation"
+    ]
+
+    resources = [
+      aws_s3_bucket.q_knowledgebase_bucket.arn,
+      "${aws_s3_bucket.q_knowledgebase_bucket.arn}/*"
+    ]
+
+    condition {
+      test     = "StringEquals"
+      variable = "aws:SourceAccount"
+
+      values = [
+        data.aws_caller_identity.current.account_id
+      ]
+    }
+
+    condition {
+      test     = "ArnLike"
+      variable = "aws:SourceArn"
+
+      values = [
+        "arn:${data.aws_partition.current.partition}:app-integrations:${var.aws_region}:${data.aws_caller_identity.current.account_id}:data-integration/*"
+      ]
+    }
+  }
+
+  statement {
+    sid    = "DenyNonEncryptedRequests"
+    effect = "Deny"
+    principals {
+      type        = "*"
+      identifiers = ["*"]
+    }
+
+    actions = [
+      "s3:*",
+    ]
+
+    resources = [
+      aws_s3_bucket.survey_recordings.arn,
+      "${aws_s3_bucket.survey_recordings.arn}/*"
+    ]
+
+    condition {
+      test     = "Bool"
+      variable = "aws:SecureTransport"
+
+      values = [
+        "false"
+      ]
+    }
+  }
+}
+
+# https://github.com/aws-samples/amazon-q-in-connect-s3-integration-template/blob/415f7cea834e7bbc85ab552357961bdd01d72b3b/amazon-q-in-connect-s3-integration-template.yaml#L188C5-L190C120
+resource "aws_appintegrations_data_integration" "q_s3_knowldgebase" {
+  name        = "${var.account_shortname}-wisdom-kb"
+  description = "KB for AWS Q in Connect sourced from a S3 Bucket"
+  kms_key     = aws_kms_alias.q_encryption_key_alias.target_key_arn
+  source_uri  = "s3://aws_s3_bucket.q_knowledgebase_bucket.id"
+
+  # Terraform problem: Requires schedule_config, but that is not mandatory in the API
+}
+
+# Problem #2. AWSCC does not provide a AWS::AppIntegrations::DataIntegration resource
+
+# The below is theoretical if the above did work
+
+resource "awscc_wisdom_knowledge_base" "q_knowlegde_base" {
+  name                = "${var.account_shortname}-wisdom-kb"
+  knowledge_base_type = "EXTERNAL"
+  description         = "Wisdom KB for showing automation for S3"
+
+  server_side_encryption_configuration = {
+    kms_key_id = aws_kms_alias.q_encryption_key_alias.target_key_arn
+  }
+
+  source_configuration = {
+    app_integrations = {
+      app_integration_arn = aws_appintegrations_data_integration.q_s3_knowldgebase.arn
+    }
+  }
+
+  tags = local.tags_to_cc_tags
+
+  # Ignore tag changes as attaching to Connect adds a new tag AmazonConnectEnabled
+  lifecycle {
+    ignore_changes = [tags]
+  }
+}
+
+# From here everything else would be configured as per the Webcrawler

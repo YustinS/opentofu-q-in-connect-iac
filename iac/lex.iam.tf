@@ -68,7 +68,7 @@ data "aws_iam_policy_document" "qic_bot_qic_access" {
       "wisdom:GetNextMessage"
     ]
     resources = [
-      "arn:aws:wisdom:*:${data.aws_caller_identity.current.account_id}:session/${awscc_wisdom_assistant.wisdom_assistant.assistant_id}/*"
+      "arn:${data.aws_partition.current.partition}:wisdom:*:${data.aws_caller_identity.current.account_id}:session/${awscc_wisdom_assistant.wisdom_assistant.assistant_id}/*"
     ]
   }
 }

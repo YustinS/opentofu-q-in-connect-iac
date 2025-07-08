@@ -86,7 +86,7 @@ resource "awscc_wisdom_ai_prompt" "self_service" {
   description  = "Example AI Prompt created using AWSCC provider"
   assistant_id = awscc_wisdom_assistant.wisdom_assistant.assistant_id
 
-  api_format    = "MESSAGES"
+  api_format = "MESSAGES"
   # This may need changing depending on your region. Check https://docs.aws.amazon.com/AWSCloudFormation/latest/TemplateReference/aws-resource-wisdom-aiprompt.html,
   # model ID. Note that by default QiC uses cross region inference, hence the ID is not tied to a single AWS Region
   model_id      = "apac.amazon.nova-pro-v1:0"
@@ -129,7 +129,7 @@ resource "awscc_wisdom_ai_prompt" "self_service_answer_generation" {
   description  = "Example AI Prompt created using AWSCC provider"
   assistant_id = awscc_wisdom_assistant.wisdom_assistant.assistant_id
 
-  api_format    = "TEXT_COMPLETIONS"
+  api_format = "TEXT_COMPLETIONS"
   # This may need changing depending on your region. Check https://docs.aws.amazon.com/AWSCloudFormation/latest/TemplateReference/aws-resource-wisdom-aiprompt.html,
   # model ID. Note that by default QiC uses cross region inference, hence the ID is not tied to a single AWS Region
   model_id      = "apac.amazon.nova-pro-v1:0"

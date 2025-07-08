@@ -59,8 +59,8 @@ data "aws_iam_policy_document" "connect_integration_policy" {
       "iam:CreateServiceLinkedRole"
     ]
     resources = [
-      "arn:aws:iam::${data.aws_caller_identity.current.account_id}:role/connect.amazonaws.com/*",
-      "arn:aws:iam::${data.aws_caller_identity.current.account_id}:role/wisdom.amazonaws.com/*"
+      "arn:${data.aws_partition.current.partition}:iam::${data.aws_caller_identity.current.account_id}:role/connect.amazonaws.com/*",
+      "arn:${data.aws_partition.current.partition}:iam::${data.aws_caller_identity.current.account_id}:role/wisdom.amazonaws.com/*"
     ]
   }
 
@@ -93,9 +93,9 @@ data "aws_iam_policy_document" "connect_integration_policy" {
       "wisdom:DeleteAssistantAssociation"
     ]
     resources = [
-      "arn:aws:wisdom:${var.aws_region}:${data.aws_caller_identity.current.account_id}:assistant/*",
-      "arn:aws:wisdom:${var.aws_region}:${data.aws_caller_identity.current.account_id}:knowledge-base/*",
-      "arn:aws:wisdom:${var.aws_region}:${data.aws_caller_identity.current.account_id}:association/*/*",
+      "arn:${data.aws_partition.current.partition}:wisdom:${var.aws_region}:${data.aws_caller_identity.current.account_id}:assistant/*",
+      "arn:${data.aws_partition.current.partition}:wisdom:${var.aws_region}:${data.aws_caller_identity.current.account_id}:knowledge-base/*",
+      "arn:${data.aws_partition.current.partition}:wisdom:${var.aws_region}:${data.aws_caller_identity.current.account_id}:association/*/*",
     ]
   }
 
