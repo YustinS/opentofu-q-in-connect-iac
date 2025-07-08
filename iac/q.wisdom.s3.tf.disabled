@@ -114,7 +114,7 @@ resource "aws_appintegrations_data_integration" "q_s3_knowldgebase" {
   name        = "${var.account_shortname}-wisdom-kb"
   description = "KB for AWS Q in Connect sourced from a S3 Bucket"
   kms_key     = aws_kms_alias.q_encryption_key_alias.target_key_arn
-  source_uri  = "s3://aws_s3_bucket.q_knowledgebase_bucket.id"
+  source_uri  = "s3://${aws_s3_bucket.q_knowledgebase_bucket.id}"
 
   # Terraform problem: Requires schedule_config, but that is not mandatory in the API
 }
