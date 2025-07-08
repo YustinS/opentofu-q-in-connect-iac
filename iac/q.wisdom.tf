@@ -81,24 +81,24 @@ resource "awscc_wisdom_assistant_association" "wisdom_assistant_integration" {
 #   integration_type = "WISDOM_KNOWLEDGE_BASE"
 # }
 
-resource "awscc_wisdom_ai_prompt" "test_non_standard_prompt" {
-  name         = "Anthropic-SelfService"
-  description  = "Example AI Prompt created using AWSCC provider"
-  assistant_id = awscc_wisdom_assistant.wisdom_assistant.assistant_id
+# resource "awscc_wisdom_ai_prompt" "test_non_standard_prompt" {
+#   name         = "Anthropic-SelfService"
+#   description  = "Example AI Prompt created using AWSCC provider"
+#   assistant_id = awscc_wisdom_assistant.wisdom_assistant.assistant_id
 
-  api_format    = "ANTHROPIC_CLAUDE_MESSAGES"
-  # This may need changing depending on your region. Check https://docs.aws.amazon.com/AWSCloudFormation/latest/TemplateReference/aws-resource-wisdom-aiprompt.html,
-  # model ID. Note that by default QiC uses cross region inference, hence the ID is not tied to a single AWS Region
-  model_id      = "apac.anthropic.claude-3-haiku-20240307-v1:0"
-  type          = "SELF_SERVICE_PRE_PROCESSING"
-  template_type = "TEXT"
+#   api_format    = "ANTHROPIC_CLAUDE_MESSAGES"
+#   # This may need changing depending on your region. Check https://docs.aws.amazon.com/AWSCloudFormation/latest/TemplateReference/aws-resource-wisdom-aiprompt.html,
+#   # model ID. Note that by default QiC uses cross region inference, hence the ID is not tied to a single AWS Region
+#   model_id      = "apac.anthropic.claude-3-haiku-20240307-v1:0"
+#   type          = "SELF_SERVICE_PRE_PROCESSING"
+#   template_type = "TEXT"
 
-  template_configuration = {
-    text_full_ai_prompt_edit_template_configuration = {
-      text = file("${path.module}/files/self_service/self-service-custom-prompt.yaml")
-    }
-  }
-}
+#   template_configuration = {
+#     text_full_ai_prompt_edit_template_configuration = {
+#       text = file("${path.module}/files/self_service/self-service-custom-prompt.yaml")
+#     }
+#   }
+# }
 
 resource "awscc_wisdom_ai_prompt" "self_service" {
   name         = "CustomPreProcessing-SelfService"
