@@ -53,10 +53,11 @@ data "aws_iam_policy_document" "connect_integration_policy" {
   statement {
     sid = "AllowRolePolicyAccess"
     actions = [
+      "iam:GetRolePolicy",
       "iam:PutRolePolicy",
       "iam:DeleteRolePolicy",
-      "iam:AttachRolePolicy",
-      "iam:CreateServiceLinkedRole"
+      "iam:DetachRolePolicy",
+      "iam:AttachRolePolicy"
     ]
     resources = [
       "arn:${data.aws_partition.current.partition}:iam::${data.aws_caller_identity.current.account_id}:role/connect.amazonaws.com/*",
